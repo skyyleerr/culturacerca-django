@@ -1,0 +1,5 @@
+Fuente: Portal de Datos Abiertos de Colombia
+Conjunto: Mapa de Espacios de las Artes, las Culturas y los Saberes
+URL: https://www.datos.gov.co/Cultura/Mapa-de-Espacios-de-las-Artes-las-Culturas-y-los-S/p9n3-av9n
+Archivo aportado por el equipo: 13 de noviembre de 2026
+Modalidad: CSV completo (sin muestra)
