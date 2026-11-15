@@ -1,10 +1,107 @@
-<!doctype html>
-<html lang="es">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>CulturaCerca — Starter</title></head>
-<body>
-  <main>
-    <h1>CulturaCerca Colombia</h1>
-    <p>Proyecto Django inicial. El Sprint 1 aún no está implementado.</p>
-  </main>
-</body>
-</html>
+{% extends 'core/base.html' %}
+{% block content %}
+<section class="hero">
+  <div class="container hero-inner">
+    <div class="hero-copy">
+      <p class="eyebrow">DESCUBRE LA CULTURA DE TU REGIÓN</p>
+      <h1>La cultura está <em>más cerca</em> de lo que imaginas.</h1>
+      <p class="hero-description">Explora espacios culturales registrados en Colombia con información pública oficial. Encuentra lugares en el municipio que te interese.</p>
+      <a class="hero-link" href="#explorar">Explorar espacios <span aria-hidden="true">↓</span></a>
+    </div>
+    <div class="hero-art" aria-hidden="true">
+      <span class="hero-orbit orbit-1"></span>
+      <span class="hero-orbit orbit-2"></span>
+      <span class="art-circle circle-1"></span>
+      <span class="art-circle circle-2"></span>
+      <span class="art-label">ARTE<br>CULTURA<br>COMUNIDAD</span>
+      <span class="art-star star-1">✳</span>
+      <span class="art-star star-2">✦</span>
+    </div>
+  </div>
+</section>
+
+<section class="explore-section" id="explorar" aria-labelledby="explorar-titulo">
+  <div class="container">
+    <div class="section-heading">
+      <div>
+        <p class="eyebrow eyebrow-dark">CATÁLOGO CULTURAL</p>
+        <h2 id="explorar-titulo">Encuentra tu próximo lugar</h2>
+        <p>Busca establecimientos por municipio. Los resultados proceden del CSV oficial, no son ejemplos inventados.</p>
+      </div>
+      {% if not error_catalogo %}
+      <div class="stats" aria-label="Estadísticas del conjunto de datos">
+        <div><strong>{{ total_espacios }}</strong><span>registros</span></div>
+        <div><strong>{{ municipios|length }}</strong><span>municipios</span></div>
+      </div>
+      {% endif %}
+    </div>
+
+    <form class="search-panel" method="get" action="{% url 'core:home' %}" role="search">
+      <div class="field">
+        <label for="municipio">Municipio</label>
+        <input id="municipio" name="municipio" type="search" list="lista-municipios"
+               value="{{ municipio_seleccionado }}" placeholder="Ej.: Bogotá, D.C."
+               autocomplete="off" maxlength="160"
+               aria-describedby="municipio-ayuda">
+        <datalist id="lista-municipios">
+          {% for municipio in municipios %}<option value="{{ municipio }}"></option>{% endfor %}
+        </datalist>
+        <small id="municipio-ayuda">Escribe o elige un municipio de las sugerencias.</small>
+      </div>
+      <button type="submit" class="btn btn-primary">Buscar espacios <span aria-hidden="true">→</span></button>
+      {% if municipio_seleccionado %}<a class="btn btn-light" href="{% url 'core:home' %}">Limpiar búsqueda</a>{% endif %}
+    </form>
+
+    {% if error_catalogo %}
+    <div class="notice notice-error" role="alert">
+      <h3>No pudimos cargar la información</h3>
+      <p>Comprueba que exista el archivo <code>data/espacios_culturales.csv</code> e inténtalo nuevamente.</p>
+    </div>
+    {% else %}
+      <div class="results-header">
+        <div>
+          <p class="eyebrow eyebrow-dark">RESULTADOS</p>
+          <h3>{% if municipio_seleccionado %}Espacios en “{{ municipio_seleccionado }}”{% else %}Espacios de Colombia{% endif %}</h3>
+          <p>{{ total_resultados }} espacio{{ total_resultados|pluralize }} encontrado{{ total_resultados|pluralize }}.</p>
+        </div>
+        <span class="data-badge">✓ Datos reales · CSV oficial</span>
+      </div>
+
+      {% if total_resultados == 0 %}
+      <div class="notice notice-empty" role="status">
+        <div class="empty-symbol" aria-hidden="true">⌕</div>
+        <h3>No encontramos espacios para ese municipio</h3>
+        <p>Verifica cómo está escrito o selecciona otro municipio de la lista.</p>
+        <a class="btn btn-primary" href="{% url 'core:home' %}">Ver todos los espacios</a>
+      </div>
+      {% else %}
+      <div class="cards">
+        {% for espacio in page_obj %}
+        <article class="space-card">
+          <div class="card-top"><span class="type-tag">{{ espacio.tipo }}</span><span class="card-mark" aria-hidden="true">✦</span></div>
+          <h4>{{ espacio.nombre }}</h4>
+          <div class="card-details">
+            <p><span class="detail-icon" aria-hidden="true">◎</span> <span>{{ espacio.municipio }}, {{ espacio.departamento }}</span></p>
+            <p><span class="detail-icon" aria-hidden="true">⌖</span> <span>{{ espacio.direccion }}</span></p>
+          </div>
+        </article>
+        {% endfor %}
+      </div>
+      {% if page_obj.paginator.num_pages > 1 %}
+      <nav class="pagination" aria-label="Páginas de resultados">
+        <span class="page-label">Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
+        <div class="page-actions">
+          {% if page_obj.has_previous %}
+            <a class="btn btn-light" href="?municipio={{ municipio_seleccionado|urlencode }}&amp;page={{ page_obj.previous_page_number }}" rel="prev">← Anterior</a>
+          {% endif %}
+          {% if page_obj.has_next %}
+            <a class="btn btn-light" href="?municipio={{ municipio_seleccionado|urlencode }}&amp;page={{ page_obj.next_page_number }}" rel="next">Siguiente →</a>
+          {% endif %}
+        </div>
+      </nav>
+      {% endif %}
+      {% endif %}
+    {% endif %}
+  </div>
+</section>
+{% endblock %}
