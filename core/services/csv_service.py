@@ -88,3 +88,24 @@ def buscar_por_municipio(espacios, municipio):
     if not termino:
         return espacios
     return tuple(e for e in espacios if normalizar_busqueda(e.municipio) == termino)
+
+
+# -----------------------------------------------------------------------------
+# Sprint 2 · HU-04 (Anthony): opciones y búsqueda exacta por tipo cultural.
+# -----------------------------------------------------------------------------
+
+def obtener_tipos(espacios):
+    """Tipos del CSV, sin duplicados y ordenados ignorando tildes/caja."""
+    tipos = {espacio.tipo for espacio in espacios if espacio.tipo != "Sin clasificar"}
+    return sorted(tipos, key=normalizar_busqueda)
+
+
+def buscar_por_tipo(espacios, tipo):
+    """Devuelve todos los espacios si no se elige tipo; si no, coincidencia exacta."""
+    termino = normalizar_busqueda(tipo)
+    if not termino:
+        return tuple(espacios)
+    return tuple(
+        espacio for espacio in espacios
+        if normalizar_busqueda(espacio.tipo) == termino
+    )
