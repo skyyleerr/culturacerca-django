@@ -5,7 +5,7 @@
     <div class="hero-copy">
       <p class="eyebrow">DESCUBRE LA CULTURA DE TU REGIÓN</p>
       <h1>La cultura está <em>más cerca</em> de lo que imaginas.</h1>
-      <p class="hero-description">Explora espacios culturales registrados en Colombia con información pública oficial. Encuentra lugares en el municipio que te interese.</p>
+      <p class="hero-description">Explora espacios culturales registrados en Colombia con información pública oficial. Busca establecimientos por municipio y tipo de espacio cultural.</p>
       <a class="hero-link" href="#explorar">Explorar espacios <span aria-hidden="true">↓</span></a>
     </div>
     <div class="hero-art" aria-hidden="true">
@@ -26,7 +26,7 @@
       <div>
         <p class="eyebrow eyebrow-dark">CATÁLOGO CULTURAL</p>
         <h2 id="explorar-titulo">Encuentra tu próximo lugar</h2>
-        <p>Busca establecimientos por municipio. Los resultados proceden del CSV oficial, no son ejemplos inventados.</p>
+        <p>Busca establecimientos por municipio y tipo cultural. Los resultados proceden del CSV oficial, no son ejemplos inventados.</p>
       </div>
       {% if not error_catalogo %}
       <div class="stats" aria-label="Estadísticas del conjunto de datos">
@@ -48,8 +48,21 @@
         </datalist>
         <small id="municipio-ayuda">Escribe o elige un municipio de las sugerencias.</small>
       </div>
+      <div class="field field-type">
+        <label for="tipo">Tipo de espacio</label>
+        <select id="tipo" name="tipo" aria-describedby="tipo-ayuda">
+          <option value="">Todos los tipos</option>
+          {% if tipo_seleccionado and tipo_seleccionado not in tipos %}
+          <option value="{{ tipo_seleccionado }}" selected>{{ tipo_seleccionado }} (sin coincidencias)</option>
+          {% endif %}
+          {% for tipo in tipos %}
+          <option value="{{ tipo }}" {% if tipo_seleccionado == tipo %}selected{% endif %}>{{ tipo }}</option>
+          {% endfor %}
+        </select>
+        <small id="tipo-ayuda">Puedes combinar este filtro con el municipio.</small>
+      </div>
       <button type="submit" class="btn btn-primary">Buscar espacios <span aria-hidden="true">→</span></button>
-      {% if municipio_seleccionado %}<a class="btn btn-light" href="{% url 'core:home' %}">Limpiar búsqueda</a>{% endif %}
+      {% if filtros_activos %}<a class="btn btn-light" href="{% url 'core:home' %}">Limpiar filtros</a>{% endif %}
     </form>
 
     {% if error_catalogo %}
@@ -61,7 +74,17 @@
       <div class="results-header">
         <div>
           <p class="eyebrow eyebrow-dark">RESULTADOS</p>
-          <h3>{% if municipio_seleccionado %}Espacios en “{{ municipio_seleccionado }}”{% else %}Espacios de Colombia{% endif %}</h3>
+          <h3>
+            {% if municipio_seleccionado and tipo_seleccionado %}
+              Espacios en “{{ municipio_seleccionado }}” · {{ tipo_seleccionado }}
+            {% elif municipio_seleccionado %}
+              Espacios en “{{ municipio_seleccionado }}”
+            {% elif tipo_seleccionado %}
+              Espacios de tipo “{{ tipo_seleccionado }}”
+            {% else %}
+              Espacios de Colombia
+            {% endif %}
+          </h3>
           <p>{{ total_resultados }} espacio{{ total_resultados|pluralize }} encontrado{{ total_resultados|pluralize }}.</p>
         </div>
         <span class="data-badge">✓ Datos reales · CSV oficial</span>
@@ -70,11 +93,23 @@
       {% if total_resultados == 0 %}
       <div class="notice notice-empty" role="status">
         <div class="empty-symbol" aria-hidden="true">⌕</div>
+        {% if municipio_seleccionado and tipo_seleccionado %}
+        <h3>No encontramos espacios para esta combinación</h3>
+        <p>Prueba otro tipo de lugar o cambia el municipio. Los dos filtros deben coincidir.</p>
+        {% elif tipo_seleccionado %}
+        <h3>No encontramos espacios de ese tipo</h3>
+        <p>Selecciona otra categoría o consulta todos los espacios culturales.</p>
+        {% elif municipio_seleccionado %}
         <h3>No encontramos espacios para ese municipio</h3>
         <p>Verifica cómo está escrito o selecciona otro municipio de la lista.</p>
+        {% else %}
+        <h3>No hay registros culturales disponibles</h3>
+        <p>Comprueba el contenido del archivo oficial para volver a intentarlo.</p>
+        {% endif %}
         <a class="btn btn-primary" href="{% url 'core:home' %}">Ver todos los espacios</a>
       </div>
       {% else %}
+      <p class="data-note">Algunos registros no incluyen dirección o descripción en el conjunto oficial; no se inventan esos datos.</p>
       <div class="cards">
         {% for espacio in page_obj %}
         <article class="space-card">
@@ -82,7 +117,11 @@
           <h4>{{ espacio.nombre }}</h4>
           <div class="card-details">
             <p><span class="detail-icon" aria-hidden="true">◎</span> <span>{{ espacio.municipio }}, {{ espacio.departamento }}</span></p>
-            <p><span class="detail-icon" aria-hidden="true">⌖</span> <span>{{ espacio.direccion }}</span></p>
+            <p><span class="detail-icon" aria-hidden="true">⌖</span>
+              {% if espacio.direccion == "Dirección no disponible" %}
+              <span class="data-missing" title="El conjunto de datos no incluye dirección para este lugar">Dirección no disponible</span>
+              {% else %}<span>{{ espacio.direccion }}</span>{% endif %}
+            </p>
           </div>
         </article>
         {% endfor %}
@@ -92,10 +131,10 @@
         <span class="page-label">Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
         <div class="page-actions">
           {% if page_obj.has_previous %}
-            <a class="btn btn-light" href="?municipio={{ municipio_seleccionado|urlencode }}&amp;page={{ page_obj.previous_page_number }}" rel="prev">← Anterior</a>
+            <a class="btn btn-light" href="?municipio={{ municipio_seleccionado|urlencode }}{% if tipo_seleccionado %}&amp;tipo={{ tipo_seleccionado|urlencode }}{% endif %}&amp;page={{ page_obj.previous_page_number }}" rel="prev">← Anterior</a>
           {% endif %}
           {% if page_obj.has_next %}
-            <a class="btn btn-light" href="?municipio={{ municipio_seleccionado|urlencode }}&amp;page={{ page_obj.next_page_number }}" rel="next">Siguiente →</a>
+            <a class="btn btn-light" href="?municipio={{ municipio_seleccionado|urlencode }}{% if tipo_seleccionado %}&amp;tipo={{ tipo_seleccionado|urlencode }}{% endif %}&amp;page={{ page_obj.next_page_number }}" rel="next">Siguiente →</a>
           {% endif %}
         </div>
       </nav>

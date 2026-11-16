@@ -58,3 +58,13 @@ h1 em{font-style:normal;color:var(--accent)}
 @media(max-width:900px){.cards{grid-template-columns:repeat(2,minmax(0,1fr))}.hero-art{height:220px}.art-label{font-size:20px}.circle-1{width:155px;height:155px}.circle-2{width:110px;height:110px}.stats{display:none}}
 @media(max-width:650px){.container{width:min(100% - 28px,1140px)}.topbar-inner{min-height:73px}.topbar-tag{display:none}.hero-inner{display:block;padding:45px 0}.hero-art{display:none}.hero-description{font-size:14px}.explore-section{padding:40px 0 55px}.section-heading{display:block}.search-panel{display:flex;flex-direction:column;align-items:stretch;padding:16px;margin-bottom:32px}.search-panel .btn{width:100%}.cards{grid-template-columns:1fr}.results-header{display:block}.results-header .data-badge{display:inline-block;margin-top:14px}.footer-inner{display:block}.footer-inner p+p{margin-top:8px}.pagination{flex-direction:column}.brand{font-size:20px}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.space-card{transition:none}}
+
+/* Sprint 2 — HU-04/HU-05: segundo filtro y estados de información incompleta. */
+.search-panel{flex-wrap:wrap}
+.field-type{min-width:215px}
+.field select{height:48px;width:100%;padding:0 37px 0 14px;border:1px solid #cbd2dd;border-radius:9px;background:#fff;color:var(--ink);font:inherit;font-size:13px;cursor:pointer}
+.field select:focus-visible{outline:2px solid #edb65e;border-color:#edb65e}
+.data-note{font-size:12px;color:var(--muted);margin:0 0 19px}
+.data-missing{color:#745b42;font-style:italic;background:#fff6e8;border-radius:4px;padding:2px 6px}
+@media(max-width:900px){.search-panel .field{flex-basis:calc(50% - 8px)}.search-panel .btn{flex:1}}
+@media(max-width:650px){.search-panel{flex-direction:column;flex-wrap:nowrap}.search-panel .field{width:100%;flex-basis:auto}.search-panel .btn{flex:auto}}
