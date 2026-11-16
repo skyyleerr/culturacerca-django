@@ -7,20 +7,19 @@ from django.shortcuts import render
 
 from .services.csv_service import (
     CatalogoError,
-    buscar_por_municipio,
-    buscar_por_tipo,
     cargar_catalogo,
     obtener_municipios,
     obtener_tipos,
 )
+
+from .services.busqueda_combinada import extraer_filtros, filtrar_por_municipio_y_tipo
 
 logger = logging.getLogger(__name__)
 
 
 def home(request):
     """Consultar el CSV filtrando por municipio, tipo, ambos o ninguno."""
-    municipio_seleccionado = request.GET.get("municipio", "").strip()[:160]
-    tipo_seleccionado = request.GET.get("tipo", "").strip()[:160]
+    municipio_seleccionado, tipo_seleccionado = extraer_filtros(request.GET)
     contexto = {
         "municipio_seleccionado": municipio_seleccionado,
         "tipo_seleccionado": tipo_seleccionado,
@@ -35,10 +34,10 @@ def home(request):
     }
     try:
         espacios = cargar_catalogo(str(settings.CULTURAL_SPACES_CSV))
-        # Orden importa solamente para el costo: ambos filtros son exactos y
-        # pueden usarse de forma independiente o simultánea (intersección).
-        por_municipio = buscar_por_municipio(espacios, municipio_seleccionado)
-        resultados = buscar_por_tipo(por_municipio, tipo_seleccionado)
+        # HU-06: intersección de municipio y tipo en un único módulo reutilizable.
+        resultados = filtrar_por_municipio_y_tipo(
+            espacios, municipio=municipio_seleccionado, tipo=tipo_seleccionado
+        )
         paginador = Paginator(resultados, settings.RESULTS_PER_PAGE)
         pagina = paginador.get_page(request.GET.get("page", 1))
         contexto.update(
